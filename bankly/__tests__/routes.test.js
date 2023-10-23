@@ -141,6 +141,7 @@ describe("PATCH /users/[username]", function() {
     expect(response.statusCode).toBe(401);
   });
 
+  // TESTS BUG #3
   test("should patch data if admin", async function() {
     const response = await request(app)
       .patch("/users/u1")
@@ -151,12 +152,11 @@ describe("PATCH /users/[username]", function() {
       first_name: "new-fn1",
       last_name: "ln1",
       email: "email1",
-      phone: "phone1",
-      admin: false,
-      password: expect.any(String)
+      phone: "phone1"
     });
   });
 
+  // Test does not make sense. Is this a bug or missing feature?
   test("should disallowing patching not-allowed-fields", async function() {
     const response = await request(app)
       .patch("/users/u1")
@@ -198,6 +198,6 @@ afterEach(async function() {
   await db.query("DELETE FROM users");
 });
 
-afterAll(function() {
-  db.end();
+afterAll(async function() {
+  await db.end();
 });

@@ -25,11 +25,12 @@ class User {
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR);
 
+    // FIXES BUG #3
     const result = await db.query(
       `INSERT INTO users 
           (username, password, first_name, last_name, email, phone) 
         VALUES ($1, $2, $3, $4, $5, $6) 
-        RETURNING username, password, first_name, last_name, email, phone`,
+        RETURNING username, first_name, last_name, email, phone`,
       [
         username,
         hashedPassword,
@@ -67,7 +68,9 @@ class User {
     const user = result.rows[0];
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      return user;
+      // FIXES BUG #3
+      const {password, ...rest} = user
+      return rest;
     } else {
       throw new ExpressError('Cannot authenticate', 401);
     }
@@ -79,7 +82,7 @@ class User {
    *
    * */
 
-  static async getAll(username, password) {
+  static async getAll() {
     const result = await db.query(
       `SELECT username,
                 first_name,
@@ -113,7 +116,8 @@ class User {
     const user = result.rows[0];
 
     if (!user) {
-      new ExpressError('No such user', 404);
+      // FIXES BUG #1
+      throw new ExpressError('No such user', 404);
     }
 
     return user;
